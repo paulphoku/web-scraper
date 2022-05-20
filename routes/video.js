@@ -26,20 +26,22 @@ router.get('/download', async function (req, res, next) {
     let quality = req.query.quality;
     let format = req.query.format;
     let title = req.query.title;
+    let browser_id = req.query.browser_id;
 
     let url = await video_scraper.url.validate(_url);
     var file = '';
 
     switch (url.type) {
         case 'yt':
-            file = await video_scraper.youtube.download(_url, quality, format, title);
-            console.log('file:', file)
-
+            file = await video_scraper.youtube.download(_url, quality, format, title, browser_id);
             file == false ?
                 res.send(
                     { status: 1, msg: 'something went wrong' }
                 ) :
-                res.download(`public/downloads/${file}`);
+                // res.send(
+                //     { status: 0, file: file }
+                // )
+                res.download(`${file}`);
             break;
         default:
             res.send({ status: 1, msg: url_type })

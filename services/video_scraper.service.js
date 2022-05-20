@@ -1,5 +1,10 @@
-const fs = require('fs');
+var fs = require("fs");
+const util = require('util');
 const ytdl = require('ytdl-core');
+const socket = require('./socket.service');
+
+// node native promisify
+const writeFile = util.promisify(fs.writeFile.bind(fs));
 
 var url = {
     /**
@@ -25,6 +30,20 @@ var url = {
     }
 }
 
+async function write_file(filename, buffer) { await writeFile(filename, buffer) }
+
+function formatBytes(bytes, decimals = 2) {
+    if (bytes === 0) return '0 Bytes';
+
+    const k = 1024;
+    const dm = decimals < 0 ? 0 : decimals;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
+
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+}
+
 var youtube = {
     /**
       * 
@@ -37,11 +56,14 @@ var youtube = {
             let videoID = ytdl.getURLVideoID(_url);
             let info = await ytdl.getInfo(videoID);
             let audioFormats = ytdl.filterFormats(info.formats, 'audioonly');
+            let title = info.videoDetails.title;
+            let videoFormats = ytdl.filterFormats(info.formats, 'video');
 
             return {
                 videoID: videoID,
                 audioFormats: audioFormats,
-                info: info
+                videoFormats: videoFormats,
+                title: title,
             }
         } catch (err) {
             console.log('err:', err)
@@ -54,19 +76,59 @@ var youtube = {
       * download video file from server
       * 
       * @param _url url string
-      * @param quality video quality :tiny, small, high , highest e.c.t
-      * @param format video format : mp4, webm, e.c.t
+      * @param _quality video quality :tiny, small, high , highest e.c.t
+      * @param _format video format : mp4, webm, e.c.t
+      * @param _title video title 
+      * @param _browser_id browser id : uuid
       */
-    download: async function (_url, quality, format, title) {
-        let videoID = ytdl.getURLVideoID(_url);
-        let filename = `${title}.${format}`;
+    download: async function (_url, _quality, _format, _title, _browser_id) {
 
         try {
-            ytdl(_url, {
-                quality: quality,
-                filter: format => format.container === format
-            }).pipe(fs.createWriteStream(`public/downloads/${filename}`));
-            return filename = filename;
+            // logger.info(`Downloading from ${url} ...`);
+            console.log(`Downloading from ${_url} ...`);
+            let filename = `public/downloads/${_title}.${_format}`;
+            var perc;
+            var total;
+            var downloaded;
+            var perc;
+
+            return new Promise((resolve, reject) => {
+                const stream = ytdl(_url, {
+                    quality: _quality,
+                    filter: (format) => format.container === _format,
+                })
+
+                stream.pipe(fs.createWriteStream(filename));
+                stream.on("progress", function (_chunk, _downloaded, _total) {
+                    perc = formatBytes(_downloaded) == formatBytes(_total) ? 100 : Number((_downloaded / _total) * 100).toFixed(0);
+                    console.log(`Downloading : ${perc} %`)
+                    total = formatBytes(_total);
+                    downloaded = formatBytes(_downloaded);
+
+                    //notity
+                    socket.broadcast.user(_browser_id, 'download_progress', {
+                        perc: perc,
+                    })
+                })
+                stream.on("finish", function () {
+                    perc = 100;
+                    console.log(`Downloading : ${perc} %`)
+                    console.log("Finished!");
+
+                    //notity
+                    socket.broadcast.user(_browser_id, 'download_progress', {
+                        perc: perc,
+                    })
+
+                    resolve(filename)
+                });
+
+
+
+
+
+
+            });
         } catch (err) {
             console.log('error:', err)
             return false;
