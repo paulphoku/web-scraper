@@ -4,7 +4,6 @@ var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 const cors = require('cors');
-
 var app = express();
 
 // view engine setup
@@ -21,6 +20,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 // app.use('/', require('./routes/index'));
 app.use('/video', require('./routes/video'));
 app.use('/saprivateschools', require('./routes/scrape_saprivateschools'));
+app.use('/powerball', require('./routes/powerball'));
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
