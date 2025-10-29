@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Hybrid Powerball-Plus Simulation Results</title>
+  <script src="https://unpkg.com/mustache@4.2.0/mustache.min.js"></script>
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: #f5f7fa;
+      color: #333;
+      display: flex;
+      justify-content: center;
+      padding: 40px;
+    }
+
+    .container {
+      background: #fff;
+      border-radius: 16px;
+      padding: 30px 40px;
+      width: 800px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    h2,
+    h3 {
+      color: #294e63;
+      margin-bottom: 10px;
+    }
+
+    h2 {
+      text-align: center;
+    }
+
+    .section {
+      margin-top: 25px;
+    }
+
+    .numbers {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .ball {
+      display: inline-block;
+      background: #26c6da;
+      color: #fff;
+      font-weight: bold;
+      border-radius: 50%;
+      width: 38px;
+      height: 38px;
+      text-align: center;
+      line-height: 38px;
+    }
+
+    .powerball {
+      background: #e53935;
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin-top: 10px;
+    }
+
+    td {
+      padding: 4px 10px;
+      border: 1px solid #eee;
+      text-align: center;
+    }
+
+    th {
+      background: #009688;
+      color: white;
+      padding: 6px 10px;
+    }
+
+    .summary {
+      margin-bottom: 20px;
+      background: #f0f9f9;
+      border-left: 5px solid #26c6da;
+      padding: 10px 15px;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- Mustache Template -->
+  <script id="powerball-template" type="x-tmpl-mustache">
+    <div class="container">
+      <h2>{{msg}}</h2>
+
+      <div class="summary">
+        <strong>Game:</strong> {{params.gameName}}<br>
+        <strong>Period:</strong> {{params.startDate}} → {{params.endDate}}<br>
+        <strong>Simulations:</strong> {{params.numOfSimulation}}
+      </div>
+
+      <div class="section">
+        <h3>🎲 Generated Results</h3>
+        {{#results}}
+          <div class="numbers">
+            {{#balls}}
+              <span class="ball">{{.}}</span>
+            {{/balls}}
+            <span class="ball powerball">{{powerball}}</span>
+          </div>
+        {{/results}}
+      </div>
+
+      <div class="section">
+        <h3>🔥 Hot Numbers</h3>
+        <div class="numbers">
+          {{#analysis.hotBalls}}
+            <span class="ball">{{.}}</span>
+          {{/analysis.hotBalls}}
+          <span class="ball powerball">PB: {{analysis.hotPower}}</span>
+        </div>
+      </div>
+
+      <div class="section">
+        <h3>❄️ Cold Numbers</h3>
+        <div class="numbers">
+          {{#analysis.coldBalls}}
+            <span class="ball">{{.}}</span>
+          {{/analysis.coldBalls}}
+          <span class="ball powerball">PB: {{analysis.coldPower}}</span>
+        </div>
+      </div>
+
+      <div class="section">
+        <h3>👫 Top Pairs</h3>
+        <table>
+          <tr><th>#</th><th>Pair</th></tr>
+          {{#analysis.topPairs}}
+            <tr>
+              <td>{{@index}}</td>
+              <td>{{.0}} &amp; {{.1}}</td>
+            </tr>
+          {{/analysis.topPairs}}
+        </table>
+      </div>
+
+      <div class="section">
+        <h3>👨‍👩‍👧 Top Triplets</h3>
+        <table>
+          <tr><th>#</th><th>Triplet</th></tr>
+          {{#analysis.topTriplets}}
+            <tr>
+              <td>{{@index}}</td>
+              <td>{{.0}}, {{.1}}, {{.2}}</td>
+            </tr>
+          {{/analysis.topTriplets}}
+        </table>
+      </div>
+    </div>
+  </script>
+
+  <div id="powerball-view"></div>
+
+  <script>
+    // Actual payload (you can replace this with fetched JSON later)
+    const payload = {
+      "status": 1,
+      "msg": "Hybrid powerball-plus numbers generated successfully from 100,000 simulations between 2023-01-01 and 2025-10-29",
+      "params": {
+        "gameName": "powerball-plus",
+        "startDate": "2023-01-01",
+        "endDate": "2025-10-29",
+        "limit": 200,
+        "numOfSimulation": 100000,
+        "batchSize": 100000,
+        "dateBias": [28, 10, 29, 25, 31]
+      },
+      "results": [
+        { "balls": [6, 16, 20, 24, 42], "powerball": 19 },
+        { "balls": [1, 10, 16, 29, 34], "powerball": 14 },
+        { "balls": [2, 5, 18, 23, 28], "powerball": 3 },
+        { "balls": [2, 10, 25, 41, 44], "powerball": 3 },
+        { "balls": [5, 6, 25, 28, 35], "powerball": 17 }
+      ],
+      "analysis": {
+        "hotBalls": [14, 2, 1, 5, 7, 6, 16, 20, 22, 25],
+        "coldBalls": [33, 40, 8, 21, 24, 28, 36, 39, 35, 48],
+        "hotPower": 17,
+        "coldPower": 20,
+        "topPairs": [
+          [5, 9], [14, 49], [22, 26], [2, 19], [19, 42], [1, 14], [16, 37], [1, 23], [14, 41], [5, 32]
+        ],
+        "topTriplets": [
+          [29, 41, 47], [2, 19, 27], [2, 19, 42], [2, 27, 42], [19, 27, 42],
+          [10, 14, 50], [4, 9, 38], [5, 9, 32], [1, 2, 7], [1, 7, 14]
+        ]
+      }
+    };
+
+    // Add index to arrays for Mustache display
+    payload.analysis.topPairs = payload.analysis.topPairs.map((pair, i) => ({ "@index": i + 1, "0": pair[0], "1": pair[1] }));
+    payload.analysis.topTriplets = payload.analysis.topTriplets.map((triplet, i) => ({ "@index": i + 1, "0": triplet[0], "1": triplet[1], "2": triplet[2] }));
+
+    // Render
+    const template = document.getElementById('powerball-template').innerHTML;
+    const rendered = Mustache.render(template, payload);
+    document.getElementById('powerball-view').innerHTML = rendered;
+  </script>
+</body>
+
+</html>

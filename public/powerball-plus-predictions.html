@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Powerball-Plus Predictions</title>
+  <script src="https://unpkg.com/mustache@4.2.0/mustache.min.js"></script>
+  <style>
+    :root {
+      --primary: #009688;
+      --accent: #294e63;
+      --error: #e53935;
+      --success: #26c6da;
+      --bg: #f5f7fa;
+      --card-bg: #ffffff;
+      --shadow: rgba(0, 0, 0, 0.08);
+      --radius: 16px;
+    }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: var(--bg);
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 960px;
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      box-shadow: 0 8px 20px var(--shadow);
+      padding: 30px;
+      animation: fadeIn 0.6s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    h1 {
+      text-align: center;
+      color: var(--accent);
+      margin-bottom: 5px;
+    }
+
+    h2 {
+      text-align: center;
+      color: var(--primary);
+      font-weight: 500;
+      margin-top: 0;
+      font-size: 1rem;
+    }
+
+    .section {
+      margin-top: 30px;
+      border-top: 1px solid #eee;
+      padding-top: 20px;
+    }
+
+    .section h3 {
+      color: var(--accent);
+      margin-bottom: 15px;
+      font-size: 1.1rem;
+    }
+
+    .numbers {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .ball {
+      background: linear-gradient(145deg, var(--success), var(--primary));
+      color: white;
+      padding: 10px 14px;
+      border-radius: 50%;
+      font-weight: 600;
+      font-size: 14px;
+      width: 36px;
+      height: 36px;
+      text-align: center;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .powerball {
+      background: linear-gradient(145deg, #ff5252, var(--error));
+      color: white;
+      padding: 10px 14px;
+      border-radius: 50%;
+      font-weight: bold;
+      margin-left: 8px;
+      font-size: 14px;
+      width: 36px;
+      height: 36px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 6px;
+    }
+
+    li {
+      background: #f0f8f9;
+      border-left: 4px solid var(--primary);
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      color: #333;
+    }
+
+    .results-grid {
+      display: table-row;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    }
+
+    .result-card {
+      background: #f9fbfb;
+      border-radius: var(--radius);
+      box-shadow: 0 2px 5px var(--shadow);
+      padding: 10px;
+      margin-top: 15px;
+
+      text-align: center;
+      transition: transform 0.2s ease;
+    }
+
+    .result-card:hover {
+      transform: scale(1.03);
+    }
+
+    .loading,
+    .error {
+      text-align: center;
+      font-weight: 500;
+      color: #777;
+      padding: 40px 0;
+    }
+
+    .error {
+      color: var(--error);
+    }
+
+    @media (max-width: 600px) {
+      .container {
+        padding: 20px;
+      }
+
+      .ball,
+      .powerball {
+        padding: 8px 10px;
+        font-size: 13px;
+        width: 32px;
+        height: 32px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div id="powerball-view">
+    <div class="loading">Loading Powerball results...</div>
+  </div>
+
+  <!-- Mustache Template -->
+  <script id="powerball-template" type="x-tmpl-mustache">
+    <div class="container">
+      <h1>Powerball-Plus Predictions</h1>
+      <h2>{{msg}}</h2>
+
+      <div class="section">
+        <h3>🎲 Simulation Results</h3>
+        <div class="results-grid">
+          {{#results}}
+            <div class="result-card">
+              <div class="numbers">
+                {{#balls}}<span class="ball">{{.}}</span>{{/balls}}
+                <span class="powerball">{{powerball}}</span>
+              </div>
+            </div>
+          {{/results}}
+        </div>
+      </div>
+
+      <div class="section">
+        <h3>🔥 Hot Numbers</h3>
+        <div class="numbers">
+          {{#analysis.hotBalls}}<span class="ball">{{.}}</span>{{/analysis.hotBalls}}
+          <span class="powerball">{{analysis.hotPower}}</span>
+        </div>
+      </div>
+
+      <div class="section">
+        <h3>❄️ Cold Numbers</h3>
+        <div class="numbers">
+          {{#analysis.coldBalls}}<span class="ball">{{.}}</span>{{/analysis.coldBalls}}
+          <span class="powerball">{{analysis.coldPower}}</span>
+        </div>
+      </div>
+
+      <div class="section">
+        <h3>🔗 Top Pairs</h3>
+        <ul>
+          {{#analysis.topPairs}}
+            <li>{{0}} & {{1}}</li>
+          {{/analysis.topPairs}}
+        </ul>
+      </div>
+
+      <div class="section">
+        <h3>🔺 Top Triplets</h3>
+        <ul>
+          {{#analysis.topTriplets}}
+            <li>{{0}}, {{1}}, {{2}}</li>
+          {{/analysis.topTriplets}}
+        </ul>
+      </div>
+    </div>
+  </script>
+
+  <script>
+    // Helper: format all numbers as two digits (e.g. 2 -> 02)
+    function padNumbers(data) {
+      const pad = (num) => String(num).padStart(2, '0');
+
+      data.results.forEach(r => {
+        r.balls = r.balls.map(pad);
+        r.powerball = pad(r.powerball);
+      });
+
+      if (data.analysis) {
+        data.analysis.hotBalls = data.analysis.hotBalls.map(pad);
+        data.analysis.coldBalls = data.analysis.coldBalls.map(pad);
+        data.analysis.hotPower = pad(data.analysis.hotPower);
+        data.analysis.coldPower = pad(data.analysis.coldPower);
+        data.analysis.topPairs = data.analysis.topPairs.map(p => p.map(pad));
+        data.analysis.topTriplets = data.analysis.topTriplets.map(t => t.map(pad));
+      }
+
+      return data;
+    }
+
+    async function loadPowerballData() {
+      const today = new Date();
+      const formattedDate = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+      const apiUrl = `http://localhost:3000/api/powerball/generate?gameName=powerball-plus&startDate=01/01/2023&endDate=${formattedDate}`;
+
+      try {
+        const response = await fetch(apiUrl);
+        if (!response.ok) throw new Error('Failed to fetch');
+        let data = await response.json();
+        data = padNumbers(data); // format numbers before rendering
+
+        const template = document.getElementById('powerball-template').innerHTML;
+        const rendered = Mustache.render(template, data);
+        document.getElementById('powerball-view').innerHTML = rendered;
+      } catch (err) {
+        document.getElementById('powerball-view').innerHTML =
+          `<div class="error">⚠️ Failed to load Powerball data. Please check your server connection.</div>`;
+        console.error('Error loading Powerball data:', err);
+      }
+    }
+
+    loadPowerballData();
+  </script>
+
+</body>
+
+</html>
